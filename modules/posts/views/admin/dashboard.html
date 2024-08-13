@@ -1,0 +1,30 @@
+{{define "content"}}
+<h1>Admin Dashboard</h1>
+<a href="/admin/posts/new" class="button">Create New Post</a>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .}}
+        <tr>
+            <td>{{.ID}}</td>
+            <td>{{.Title}}</td>
+            <td>{{.CreatedAt.Format "Jan 02, 2006"}}</td>
+            <td>{{.UpdatedAt.Format "Jan 02, 2006"}}</td>
+            <td>
+                <a href="/admin/posts/edit/{{.ID}}">Edit</a>
+                <button hx-delete="/admin/posts/delete/{{.ID}}"
+                    hx-confirm="Are you sure you want to delete this post?">Delete</button>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{end}}

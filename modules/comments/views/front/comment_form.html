@@ -1,0 +1,8 @@
+{{define "comment_form"}}
+<form hx-post="/comments/add" hx-target="#comments-list" hx-swap="outerHTML">
+    <input type="hidden" name="post_id" value="{{.PostID}}">
+    <input type="hidden" name="user_id" value="{{.UserID}}">
+    <textarea name="content" required></textarea>
+    <button type="submit">Add Comment</button>
+</form>
+{{end}}

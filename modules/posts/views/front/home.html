@@ -1,0 +1,10 @@
+{{ define "content" }}
+<h1>{{ .Title }}</h1>
+<ul>
+    {{ range .Posts }}
+    <li><a href="/post/{{ .ID }}">{{ .Title }}</a></li>
+    {{ else }}
+    <li>No posts available</li>
+    {{ end }}
+</ul>
+{{ end }}
