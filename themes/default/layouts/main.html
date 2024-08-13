@@ -1,31 +1,29 @@
 {{define "main"}}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{.Title}} - Go HTMX CMS</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
 
-<body>
+  <body>
     <header>
-        <h1>Go HTMX CMS</h1>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/posts">Posts</a>
-            <a href="/about">About</a>
-        </nav>
+      <h1>Go HTMX CMS</h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/posts">Posts</a>
+        <a href="/comments">Comments</a>
+      </nav>
     </header>
     <main>
-        {{template "content" .}}
+      {{template "content" .}}
     </main>
     <footer>
-        <p>&copy; 2024 Go HTMX CMS</p>
+      <p>&copy; 2024 Go HTMX CMS</p>
     </footer>
-</body>
-
+  </body>
 </html>
 {{end}}

@@ -5,16 +5,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 
+	"base/blog/app"
 	"base/blog/config"
-	"base/blog/database"
 	"base/blog/middleware"
-	"base/blog/modules/comments"
-	"base/blog/modules/posts"
-	"base/blog/modules/posts/controllers"
-	"base/blog/modules/users"
 	"base/blog/utils"
 )
 
@@ -28,43 +25,46 @@ func main() {
 	cfg := config.New()
 
 	// Initialize database
-	db, err := database.InitDB(cfg.DatabaseURL)
-	if err != nil {
-		log.Fatalf("Error initializing database: %v", err)
+	if err := utils.InitDB(cfg); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer db.Close()
 
 	// Initialize templates
 	if err := utils.InitTemplates(cfg.Theme); err != nil {
 		log.Fatalf("Error initializing templates: %v", err)
 	}
 
-	// Initialize router
-	r := mux.NewRouter()
+	// Initialize Chi router
+	r := chi.NewRouter()
 
-	// API routes
-	apiRouter := r.PathPrefix("/api/v1").Subrouter()
+	// Use Chi middlewares
+	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.Recoverer)
+	r.Use(middleware.LoggingMiddleware)
+
+	// Create API subrouter and apply middleware before routes are mounted
+	apiRouter := chi.NewRouter()
 	apiRouter.Use(middleware.APIMiddleware)
+	r.Mount("/api/v1", apiRouter)
 
-	// Admin routes
-	adminRouter := r.PathPrefix("/admin").Subrouter()
+	// Create Admin subrouter and apply middleware before routes are mounted
+	adminRouter := chi.NewRouter()
 	adminRouter.Use(middleware.AuthMiddleware(cfg))
+	r.Mount("/admin", adminRouter)
 
-	// Setup module routes
-	posts.SetupRoutes(r, apiRouter, adminRouter, db, cfg)
-	users.SetupRoutes(r, apiRouter, adminRouter, db, cfg)
-	comments.SetupRoutes(r, apiRouter, adminRouter, db, cfg)
+	// Initialize and setup module routes
+	registry := app.InitModules(utils.DB, cfg)
 
-	// Explicitly set up the homepage route
-	postController := controllers.NewFrontController(db, cfg)
-	r.HandleFunc("/", postController.ListPostsHandler).Methods("GET")
+	// Apply middleware and set up routes
+	for name, module := range registry.Modules {
+		if err := module.SetupRoutes(r, apiRouter, adminRouter); err != nil {
+			log.Fatalf("Error setting up routes for module %s: %v", name, err)
+		}
+	}
 
 	// Serve static files
-	fs := http.FileServer(http.Dir("./themes/" + cfg.Theme + "/static"))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
-
-	// Setup middleware for all routes
-	r.Use(middleware.LoggingMiddleware)
+	filesDir := http.Dir("./themes/" + cfg.Theme + "/static")
+	utils.FileServer(r, "/static", filesDir)
 
 	// Determine port for HTTP service
 	port := os.Getenv("PORT")

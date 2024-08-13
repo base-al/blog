@@ -6,9 +6,14 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 var templates map[string]*template.Template
+
+// InitTemplates initializes the templates with the given theme
 
 func InitTemplates(theme string) error {
 	templates = make(map[string]*template.Template)
@@ -47,6 +52,28 @@ func InitTemplates(theme string) error {
 	return nil
 }
 
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
+}
+
+// RenderTemplate renders a template with the given name and data
 func RenderTemplate(w http.ResponseWriter, name string, data interface{}) error {
 	tmpl, ok := templates[name]
 	if !ok {
@@ -55,5 +82,17 @@ func RenderTemplate(w http.ResponseWriter, name string, data interface{}) error 
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	return tmpl.ExecuteTemplate(w, "main", data) // Change "content" to "main"
+	return tmpl.ExecuteTemplate(w, "main", data)
+}
+func RenderAdminTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	tmplPath := filepath.Join("core/admin/views", tmpl)
+	t, err := template.ParseFiles(tmplPath)
+	if err != nil {
+		http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+	}
 }

@@ -1,0 +1,16 @@
+{{define "content"}}
+<h1>Dashboard</h1>
+{{if .User}}
+<p>Welcome, {{.User.Name}}!</p>
+{{else}}
+<p>Welcome, guest!</p>
+{{end}} {{if .User}}
+<p><a href="/admin/posts">Posts</a></p>
+<p><a href="/admin/comments">Comments</a></p>
+<p><a href="/admin/settings">Settings</a></p>
+{{end}} {{if .User}}
+<p><a href="/admin/logout">Logout</a></p>
+{{else}}
+<p><a href="/admin/login">Login</a></p>
+
+{{end}}

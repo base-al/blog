@@ -1,3 +1,4 @@
+// config/config.go
 package config
 
 import (
@@ -6,24 +7,48 @@ import (
 )
 
 type Config struct {
-	DatabaseURL string
-	ServerPort  string
-	Theme       string
-	JWTSecret   string
-	AdminUser   string
-	AdminPass   string
-	Debug       bool
+	// Database settings
+	DBDriver   string
+	DBUser     string
+	DBPassword string
+	DBHost     string
+	DBPort     string
+	DBName     string
+	DBPath     string
+	DBURL      string
+
+	// Server settings
+	ServerPort string
+
+	// Application settings
+	Theme     string
+	JWTSecret string
+	AdminUser string
+	AdminPass string
+	Debug     bool
 }
 
 func New() *Config {
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "blog.db"),
-		ServerPort:  getEnv("PORT", "8080"),
-		Theme:       getEnv("THEME", "default"),
-		JWTSecret:   getEnv("JWT_SECRET", "admin"),
-		AdminUser:   getEnv("ADMIN_USER", "admin"),
-		AdminPass:   getEnv("ADMIN_PASS", "password"),
-		Debug:       getEnvAsBool("DEBUG", false),
+		// Database settings
+		DBDriver:   getEnv("DB_DRIVER", "sqlite"),
+		DBUser:     getEnv("DB_USER", "root"),
+		DBPassword: getEnv("DB_PASSWORD", ""),
+		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBPort:     getEnv("DB_PORT", "3306"),
+		DBName:     getEnv("DB_NAME", "blog"),
+		DBPath:     getEnv("DB_PATH", "blog.db"),
+		DBURL:      getEnv("DB_URL", ""),
+
+		// Server settings
+		ServerPort: getEnv("PORT", "8080"),
+
+		// Application settings
+		Theme:     getEnv("THEME", "default"),
+		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
+		AdminUser: getEnv("ADMIN_USER", "admin"),
+		AdminPass: getEnv("ADMIN_PASS", "password"),
+		Debug:     getEnvAsBool("DEBUG", false),
 	}
 }
 
